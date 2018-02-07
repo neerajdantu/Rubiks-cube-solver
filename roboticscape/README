@@ -1,0 +1,20 @@
+--------------------------------------------------------------------------
+Robotics Cape Library Update for Rubik's Cube Solver
+--------------------------------------------------------------------------
+
+  This folder contains updates to the Robotics Cape Library in order to 
+support a wider drive range for the servo motors.
+
+  To install this update, execute:  
+
+uninstall.sh
+install.sh
+
+This will uninstall the previous version of the Robotics Cape Library and 
+install this updated version.
+
+
+
+
+
+

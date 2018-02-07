@@ -1,0 +1,224 @@
+--------------------------------------------------------------------------
+Rubik's Cube Solver Demo                                        11/20/2017
+--------------------------------------------------------------------------
+
+Authors:
+    Eshtaartha Basu
+    Neeraj Dantu
+    Erik Welsh
+
+License:
+    Copyright 2017, Octavo Systems, LLC. All rights reserved.
+    
+--------------------------------------------------------------------------
+Getting Started
+--------------------------------------------------------------------------
+
+-------------------------------------------------
+Creating an SD Card
+-------------------------------------------------
+
+**** USE AT LEAST AN 8GB SD CARD ****
+
+-------------------------------------------------
+Connecting to Wifi
+
+Commands:
+    sudo connmanctl 
+    enable wifi
+    scan wifi
+    services
+    agent on
+    connect <wifi network in list>
+        <password>
+    quit
+    ifconfig -a
+    ping www.google.com
+
+
+-------------------------------------------------
+Set up Python OpenCV - Python2 and Python3
+
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo apt-get install build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+sudo apt-get install python3.5-dev
+
+sudo apt-get install python3-pip
+sudo pip install --upgrade pip
+sudo pip install numpy
+
+python3.5-config --includes 
+  - The output should show the same directories.  If not:
+      sudo cp /usr/include/x86_64-linux-gnu/python3.5m/pyconfig.h /usr/include/python3.5m/
+
+mkdir opencv_build
+cd opencv_build
+git clone https://github.com/Itseez/opencv.git
+
+mv opencv to opencv-3
+cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local ../opencv-3
+make
+sudo make install
+
+
+-------------------------------------------------
+Test the camera
+
+cd /home/debian
+nano test_camera.py
+
+
+# -*- coding: utf-8 -*-
+"""
+------------------------------------------------------------------------------
+Octavo Systems LLC - Test camera
+------------------------------------------------------------------------------
+Authors:   Erik Welsh (erik.welsh [at] octavosystems.com)
+License:   Copyright 2017, Octavo Systems LLC. All rights reserved.
+           Distributed under the Octavo Systems license (LICENSE)
+------------------------------------------------------------------------------
+Test camera interface
+
+This program will use openCV to grab an image from the camera and 
+write it to "capture.png"
+
+"""
+import numpy as np
+import cv2
+
+cam = cv2.VideoCapture(0)
+cam.set (cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 1280)
+cam.set (cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 720)
+ret, frame = cam.read( )
+
+cv2.imwrite ("capture.png", frame)
+
+cam.release()
+
+
+Background information:
+
+http://derekmolloy.ie/beaglebone-images-video-and-opencv/
+
+
+
+-------------------------------------------------
+Install Rubik's cube solver
+
+Solver code: https://github.com/hkociemba/RubiksCube-TwophaseSolver
+Copy downloaded zip to <path>/octavo_demo/bb_blue/rubiks_cube/cube_solver/
+Un-zip and cd into the directory
+Modify example.py to use method 1 (ie change the comment location)
+
+python3 example.py
+  - This will build the initial solving table
+
+
+Install Robotics Cape Python3 interface
+
+
+sudo pip3 install rcpy
+
+
+Updates to Robotics cape
+  - modify libraries/other/rc_pru.c
+    - Change bounds for servo pulse from +/- 1.5 to +/- 2
+  - modify install.sh
+    - Change check on debian version
+
+
+-------------------------------------------------
+Assemble the demo
+-------------------------------------------------
+
+> Components of the demo:
+    1. 3 arms marked as 'Left', 'Right' and 'Back'
+    2. Camera
+    3. Camera mount
+    4. Camera screw
+    5. Beaglebone Blue
+    6. Battery
+    7. SD card with Demo Image
+    8. Strip LED light
+    9. USB - MicroUSB cable
+    10. 12V power supply
+    11. Rubik's cube
+    12. Black background and paper 
+    13. Necessary screws to mount the arms and camera base
+    
+> Use screws to mount the arms at corresponding positions - Left, Right and Back
+> Make adjustments if necessary to make sure the back arm clutches the Rubik's cube on the center block
+> Mount the camera base using screws
+> Place the battery on the back of the Beaglebone Blue
+> Insert the SD card containing the demo image into Beaglebone Blue's SD card slot. Fix the Beaglebone Blue on the display case and place it on the base board.
+> Insert the servo motor cables into Beaglebone. Make sure the cable marked 1 is inserted into channel 1 of the servo header of the Beaglebone Blue.
+> Insert the micro-SD cable into the Bealgebone Blue
+> Insert the 12V power brick barrel connector into the Beaglebone Blue
+> Fix the camera on the camera base using the screw mount
+> Insert the camera USB cable into the USB slot of the Beaglebone Blue
+> Connect the battery cable to the Beaglebone Blue
+> Place the LED light strip against the 2 plastic bumps on the right side of the base board
+> Use the velcro stip to connect and arrange the black background to the base board
+> Place the thick black paper(?) on top of the background
+> After Beaglebone Blue boots, connect the USB cable to a laptop and bring up cloud9
+> turn on the LED strip
+> Run the code as described in 'Running the Demo' and make adjustments to the camera using the screw mount and it's adjustable height to align the boxes to the Rubik's cube blocks. 
+    - 'cube_alignment.png' stores all the images taken by the camera and will help align the camera
+
+> ------------------------------------
+> Calibrate Colors
+> ------------------------------------
+> Place a randon cube in place and run the code described in 'Running the Demo'
+> Each time the code processes an image, it spits out the color it has classified the bloack as, it's RGB coordinate and it's LAB coordinate
+> Compare the readings of the RGB and LAB coordinates with the actual colors on the blocks
+> The program uses 2nd and 3rd coordinates of the LAB coordinate to classify color.
+> For YELLOW, ORANGE and RED colors, it uses the green component of the RGB coordinate to additionally determine the color
+> Values of the coordinates may be adjusted based on the position of the block on the cube face. The middle of the cube coordinates are the most accurate
+> Once all the 6 colors are classified, the program will finish scanning the cube and start solving
+
+-------------------------------------------------
+Running the Demo
+-------------------------------------------------
+
+cd <path>/octavo_demo/bb_blue/rubiks_cube/cube_solver/
+
+To align the cube for image processing:
+  python3 ../image_processing/read_rubiks_cube.py -a
+
+To solve the cube:
+  sudo PYTHONPATH=. python3 ../solve_rubiks_cube.py -v
+
+
+NOTE:  The reason we run out of the cube_solver directory is due to the fact that 
+  the cube solver code generates temporary files in the run directory.  Therefore, 
+  to keep all of those files together, we just run out of the solver directory.
+  
+ 
+-------------------------------------------------
+Calibrating the Image Processing Software
+
+Aligning the cube for image processing:
+  python3 <path>/image_processing/read_rubiks_cube.py -a
+
+This creates a PNG image:  cube_alignment.png
+
+From this, you can see the camera alignment and adjust accordingly.
+
+For more accurate alignment run solver so that the arms grip the cube
+while the alignment is verified.
+
+
+-------------------------------------------------
+  
+  
+
+
+
+
+
+
+
+
+
